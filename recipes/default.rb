@@ -105,3 +105,6 @@ unless Chef::Config[:solo]
   include_recipe 'barbican-rabbitmq::_newrelic'
 end
 
+# Perform final configuration on the server.
+include_recipe 'barbican::_final'
+
