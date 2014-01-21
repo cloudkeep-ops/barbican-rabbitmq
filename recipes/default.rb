@@ -21,71 +21,39 @@
 #   http://docs.opscode.com/resource_cookbook_file.html
 #
 
-# Do anything needed beyond the standard rabbit mq install here
-
-include_recipe "barbican::_base"
-
-# Build a map of host name to IP addresses, for queue nodes in my cluster.
-hosts = []
-ips = []
-env = 'unknown'
-if Chef::Config[:solo]
-  for host_entry in node[:solo_ips]
-    hosts.push(host_entry[:hostname])
-    ips.push(host_entry[:ip])    
-  end
-  env = 'solo'
-else
-  q_nodes = search(:node, "role:barbican-queue AND chef_environment:#{node.chef_environment}")
-  if q_nodes.empty?
-    Chef::Log.info 'No other queue nodes found to cluster with.'
-  else
-    for q_node in q_nodes
-      hosts.push(q_node[:hostname])
-      ips.push(q_node[:ipaddress])          
-    end
-  end
-  env = node.chef_environment
-end
-host_ips = Hash[hosts.zip(ips)] 
-Chef::Log.debug "Final host-ip hash: #{host_ips}"
+Chef::Log.debug "Final host-ip hash: #{node['barbican_rabbitmq']['host_ips']}"
 Chef::Log.debug "rabbitmq cluster: #{node['rabbitmq']['cluster']}"
 Chef::Log.debug "rabbitmq clusters: #{node['rabbitmq']['cluster_disk_nodes']}"
 
 # Configure host table as needed by RabbitMQ clustering:
-es_hosts_entries = []
+rabbit_hosts_entries = []
 
-#   - Build my cluster host entries.
-host_ips.each do |host, ip|
-  es_hosts_entries.push("#{ip}\t#{host}\n")
+#   - Build cluster host entries.
+node['barbican_rabbitmq']['host_ips'].each do |host, ip|
+  rabbit_hosts_entries.push("#{ip}\t#{host}\n")
 end
 
 #   - Write the hosts file with host entries.
 template "/etc/hosts" do
   source "hosts.erb"
   variables(
-    :es_ips_hostnames => es_hosts_entries
+    :rabbit_ips_hostnames => rabbit_hosts_entries
   )
 end
-
 
 # Configure RabbitMQ:
 #    - Default to true for clustered rabbit.
 node.set["rabbitmq"]["cluster"] = true
 #    - Create string of cluster nodes.
+hosts = node['barbican_rabbitmq']['host_ips'].keys 
 node.set['rabbitmq']['cluster_disk_nodes'] = hosts.map{|n| "rabbit@#{n}"}
 Chef::Log.debug "rabbitmq cluster string: #{node['rabbitmq']['cluster_disk_nodes']}"
-#    - Set the erlang cookie, that must be the same across all cluster nodes.
-node.set['rabbitmq']['erlang_cookie'] = "#{node[:node_group][:tag]}-#{env}"
-unless Chef::Config[:solo]
-  node.save
-end
 Chef::Log.debug "rabbitmq cookie: #{node['rabbitmq']['erlang_cookie']}"
 
 include_recipe "rabbitmq"
 
-rabbitmq_user "guest" do
-  password "guest"
+rabbitmq_user node['barbican_rabbitmq']['user']  do
+  password node['barbican_rabbitmq']['password'] 
   action :add
 end
 
@@ -97,14 +65,3 @@ rabbitmq_policy "ha-all" do
 end
 
 include_recipe "rabbitmq::mgmt_console"
-
-# Configure NewRelic on this RabbitMQ server.
-unless Chef::Config[:solo]
-  node.set[:meetme_newrelic_plugin][:rabbitmq][:host] = node[:ipaddress]
-  node.save
-  include_recipe 'barbican-rabbitmq::_newrelic'
-end
-
-# Perform final configuration on the server.
-include_recipe 'barbican::_final'
-
