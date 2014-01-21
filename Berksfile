@@ -2,5 +2,4 @@ site :opscode
 
 metadata
 
-cookbook 'barbican', path: '../barbican'
-
+cookbook 'rabbitmq', github: 'rackspace-cookbooks/rabbitmq'
