@@ -1,5 +1,7 @@
 
-#The erlang cookie, that must be the same across all cluster nodes.
+#The erlang cookie, that must be the same across all cluster nodes.  
+#The cookie should probably be overriden in a wrapping cookbook to 
+#set unique cookies per environment
 default['rabbitmq']['erlang_cookie'] = 'queue-solo'
 
 #Tag the node in the barbican cluster

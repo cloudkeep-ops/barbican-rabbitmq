@@ -1,6 +1,6 @@
 module Extensions
   # Allows a user to specifiy the node attribute used to determine the ip_address.
-  # Converts a string in the form of foo.bar.baz' and retreives the attribute  
+  # Converts a string in the form of foo.bar.baz' and retrieves the attribute  
   # value at node['foo']['bar']['baz']
 
   def select_ip_attribute(node, attribute = nil)

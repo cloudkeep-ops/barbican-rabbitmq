@@ -10,6 +10,7 @@ Requires RabbitMQ Cookbook rackspace-cookbooks/rabbitmq that contains a bugfix f
 
 * `node['node_group']['tag']` - tag the node in the barbican cluster
 * `node['node_group']['description']` - description of the node in the barbican cluster
+* `node['rabbitmq']['erlang_cookie']` - this attribute should be overidden to set the cookie for cluster communication
 * `node['barbican_rabbitmq']['user']` - username for rabbitmq
 * `node['barbican_rabbitmq']['password']` - password for rabbitmq
 * `node['barbican_rabbitmq']['host_ips']` - hash of hostname, ips for other rabbit nodes in the HA cluster
@@ -30,7 +31,7 @@ Install RabbitMQ, and configures for HA use.
 
 ### search_discovery.rb
 
-Uses Chef search to identify other nodes in a RabbitMQ HA cluster.  This recipe runs hte default recipe after populating the `node['barbican_rabbitmq']['host_ips']` attribute using Chef Search.
+Uses Chef search to identify other nodes in a RabbitMQ HA cluster.  This recipe runs the default recipe after populating the `node['barbican_rabbitmq']['host_ips']` attribute using Chef Search.
 
 "run_list": [
   "recipe[barbican-rabbitmq]"
