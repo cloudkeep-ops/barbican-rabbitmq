@@ -21,9 +21,11 @@
 #   http://docs.opscode.com/resource_cookbook_file.html
 #
 
-Chef::Log.debug "Final host-ip hash: #{node['barbican_rabbitmq']['host_ips']}"
-Chef::Log.debug "rabbitmq cluster: #{node['rabbitmq']['cluster']}"
-Chef::Log.debug "rabbitmq clusters: #{node['rabbitmq']['cluster_disk_nodes']}"
+if node['barbican_rabbitmq']['databag_name']
+  rabbitmq_bag = data_bag_item(node['barbican']['queue']['databag_name'], 'rabbitmq')
+  node.set['barbican_rabbitmq']['user'] = rabbitmq_bag['username']
+  node.set['barbican_rabbitmq']['password']= rabbitmq_bag['password']
+end
 
 # Configure host table as needed by RabbitMQ clustering:
 rabbit_hosts_entries = []
