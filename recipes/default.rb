@@ -22,7 +22,7 @@
 #
 
 if node['barbican_rabbitmq']['databag_name']
-  rabbitmq_bag = data_bag_item(node['barbican']['queue']['databag_name'], 'rabbitmq')
+  rabbitmq_bag = data_bag_item(node['barbican_rabbitmq']['databag_name'], 'rabbitmq')
   node.set['barbican_rabbitmq']['user'] = rabbitmq_bag['username']
   node.set['barbican_rabbitmq']['password']= rabbitmq_bag['password']
 end
