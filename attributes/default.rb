@@ -11,6 +11,7 @@ default['node_group']['description'] = 'Barbican Queue Node'
 default['barbican_rabbitmq']['databag_name'] = nil
 default['barbican_rabbitmq']['user'] = 'guest'
 default['barbican_rabbitmq']['password'] = 'guest'
+default['barbican_rabbitmq']['vhost'] = '/'
 
 # Hash of hostname, ips for other rabbit nodes in the HA cluster
 default['barbican_rabbitmq']['host_ips'] = {
