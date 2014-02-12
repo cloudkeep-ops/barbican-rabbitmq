@@ -26,7 +26,7 @@ unless Chef::Config[:solo]
 
   unless q_nodes.empty?
     for q_node in q_nodes
-      hosts.push(q_node['hostname'])
+      hosts.push(q_node['fqdn'])
       ips.push(select_ip_attribute(q_node, node['barbican_rabbitmq']['discovery']['ip_attribute']))          
     end
   else
@@ -36,7 +36,7 @@ unless Chef::Config[:solo]
   #create a hash of hostname to ip mappings
   host_ips = Hash[hosts.zip(ips)]
   #make sure that the current node is included in the hash
-  host_ips.merge!({node['hostname'] => select_ip_attribute(node, node['barbican_rabbitmq']['discovery']['ip_attribute'])})
+  host_ips.merge!({node['fqdn'] => select_ip_attribute(node, node['barbican_rabbitmq']['discovery']['ip_attribute'])})
 
   #populate the node attribute used for defining hostname/ips for HA cluster
   node.set['barbican_rabbitmq']['host_ips'] = host_ips
