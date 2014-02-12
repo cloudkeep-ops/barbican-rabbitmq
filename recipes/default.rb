@@ -41,7 +41,8 @@ end
 #    - Default to true for clustered rabbit.
 node.set["rabbitmq"]["cluster"] = true
 #    - Create string of cluster nodes.
-hosts = node['barbican_rabbitmq']['host_ips'].keys 
+hosts = node['barbican_rabbitmq']['host_ips'].keys
+hosts.sort! 
 node.set['rabbitmq']['cluster_disk_nodes'] = hosts.map{|n| "rabbit@#{n}"}
 Chef::Log.debug "rabbitmq cluster string: #{node['rabbitmq']['cluster_disk_nodes']}"
 Chef::Log.debug "rabbitmq cookie: #{node['rabbitmq']['erlang_cookie']}"
@@ -50,39 +51,32 @@ include_recipe "rabbitmq"
 
 if node['barbican_rabbitmq']['databag_name']
   rabbitmq_bag = data_bag_item(node['barbican_rabbitmq']['databag_name'], 'rabbitmq')
-
-  rabbitmq_vhost rabbitmq_bag['vhost'] do
-    action :add
-  end
-
-  rabbitmq_user rabbitmq_bag['username']  do
-    password rabbitmq_bag['password'] 
-    action :add
-  end
-
-  rabbitmq_user rabbitmq_bag['username'] do
-    vhost "/"
-    permissions ".* .* .*"
-    action :set_permissions
-  end
+  vhost = rabbitmq_bag['vhost']
+  username = rabbitmq_bag['username']
+  password = rabbitmq_bag['password']
+  vhost_permissions = rabbitmq_bag['vhost_permissions']
 else
-
-  rabbitmq_vhost node['barbican_rabbitmq']['vhost'] do
-    action :add
-  end
-
-  rabbitmq_user node['barbican_rabbitmq']['user']  do
-    password node['barbican_rabbitmq']['password'] 
-    action :add
-  end
-
-  rabbitmq_user node['barbican_rabbitmq']['user'] do
-    vhost "/"
-    permissions ".* .* .*"
-    action :set_permissions
-  end
-
+  vhost = node['barbican_rabbitmq']['vhost']
+  username = node['barbican_rabbitmq']['user']
+  password = node['barbican_rabbitmq']['password']
+  vhost_permissions = node['barbican_rabbitmq']['vhost_permissions']
 end
+
+rabbitmq_vhost vhost do
+  action :add
+end
+
+rabbitmq_user username do
+  password password 
+  action :add
+end
+
+rabbitmq_user username do
+  vhost vhost
+  permissions vhost_permissions
+  action :set_permissions
+end
+
 
 rabbitmq_policy "ha-all" do
   pattern "^(?!amq\\.).*"
