@@ -56,11 +56,22 @@ if node['barbican_rabbitmq']['databag_name']
     action :add
   end
 
+  rabbitmq_user rabbitmq_bag['username'] do
+    vhost "/"
+    permissions ".* .* .*"
+    action :set_permissions
+  end
 else
 
   rabbitmq_user node['barbican_rabbitmq']['user']  do
     password node['barbican_rabbitmq']['password'] 
     action :add
+  end
+
+  rabbitmq_user node['barbican_rabbitmq']['user'] do
+    vhost "/"
+    permissions ".* .* .*"
+    action :set_permissions
   end
 
 end
