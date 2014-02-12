@@ -21,12 +21,6 @@
 #   http://docs.opscode.com/resource_cookbook_file.html
 #
 
-if node['barbican_rabbitmq']['databag_name']
-  rabbitmq_bag = data_bag_item(node['barbican_rabbitmq']['databag_name'], 'rabbitmq')
-  node.set['barbican_rabbitmq']['user'] = rabbitmq_bag['username']
-  node.set['barbican_rabbitmq']['password']= rabbitmq_bag['password']
-end
-
 # Configure host table as needed by RabbitMQ clustering:
 rabbit_hosts_entries = []
 
@@ -54,9 +48,21 @@ Chef::Log.debug "rabbitmq cookie: #{node['rabbitmq']['erlang_cookie']}"
 
 include_recipe "rabbitmq"
 
-rabbitmq_user node['barbican_rabbitmq']['user']  do
-  password node['barbican_rabbitmq']['password'] 
-  action :add
+if node['barbican_rabbitmq']['databag_name']
+  rabbitmq_bag = data_bag_item(node['barbican_rabbitmq']['databag_name'], 'rabbitmq')
+
+  rabbitmq_user rabbitmq_bag['username']  do
+    password rabbitmq_bag['password'] 
+    action :add
+  end
+
+else
+
+  rabbitmq_user node['barbican_rabbitmq']['user']  do
+    password node['barbican_rabbitmq']['password'] 
+    action :add
+  end
+
 end
 
 rabbitmq_policy "ha-all" do
