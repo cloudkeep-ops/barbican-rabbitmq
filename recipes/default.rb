@@ -55,6 +55,9 @@ if node['barbican_rabbitmq']['databag_name']
   username = rabbitmq_bag['username']
   password = rabbitmq_bag['password']
   vhost_permissions = rabbitmq_bag['vhost_permissions']
+  rabbitmq_user 'guest' do
+    action :delete
+  end
 else
   vhost = node['barbican_rabbitmq']['vhost']
   username = node['barbican_rabbitmq']['user']
@@ -77,6 +80,10 @@ rabbitmq_user username do
   action :set_permissions
 end
 
+rabbitmq_user username do
+  tag 'administrator'
+  action :set_tags
+end
 
 rabbitmq_policy "ha-all" do
   pattern "^(?!amq\\.).*"
